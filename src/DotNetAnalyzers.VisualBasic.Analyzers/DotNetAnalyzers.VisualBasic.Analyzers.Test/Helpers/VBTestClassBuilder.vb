@@ -17,6 +17,15 @@ Public Class VBTestClassBuilder
 
         Return Me
     End Function
+	Public Function WithFunction(functionName As String, resultType As String, content As String) As VBTestClassBuilder
+        With _testClass
+			.AppendLine($"	Public Function {functionName} As {resultType}")
+			.AppendLine("		" & content)
+			.AppendLine("	End Function")
+		End With
+
+        Return Me
+    End Function
 
 	Public Function WithAutoProperty(propertyName As String, dataType As String) As VBTestClassBuilder
 		_testClass.AppendLine($"	Public Property {propertyName} As {dataType}")
@@ -45,7 +54,7 @@ Public Class VBTestClassBuilder
 			.AppendLine(_testClass.ToString())
 			.AppendLine("End Class")
 			.AppendLine("Public Module TestModule")
-			.AppendLine("	Public SUb Main(args As String())")
+			.AppendLine("	Public Sub Main(args As String())")
 			.AppendLine("	End Sub")
 			.AppendLine("End Module")
 		End With

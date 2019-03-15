@@ -23,7 +23,7 @@ Public Class MethodCallMustHaveBracesAnalyzerTests
 		<Test>
 		Public Sub Is_Valid_If_Object_Creation_Is_Done_With_Braces()
 			Dim testClass = _testClassBuilder.
-							WithSub("TestSub", "Dim test = New System.Text.StringBuilder()").
+							WithSub("TestSub()", "Dim test = New System.Text.StringBuilder()").
 							BuildClass("TestClass")
 
 			VerifyBasicDiagnostic(testClass)
@@ -32,8 +32,8 @@ Public Class MethodCallMustHaveBracesAnalyzerTests
 		<Test>
 		Public Sub Is_Valid_If_Method_Call_Is_Done_With_Braces()
 			Dim testClass = _testClassBuilder.
-							WithSub("TestSub", "AnotherSub()").
-							WithSub("AnotherSub", "").
+							WithSub("TestSub()", "AnotherSub()").
+							WithSub("AnotherSub()", "").
 							BuildClass("TestClass")
 
 			VerifyBasicDiagnostic(testClass)
@@ -43,7 +43,7 @@ Public Class MethodCallMustHaveBracesAnalyzerTests
 		Public Sub Does_Not_Analyze_InitializeComponent_Method()
 			Dim testClass = _testClassBuilder.
 						WithSub("InitializeComponent()", "AnotherSub").
-						WithSub("AnotherSub", "").
+						WithSub("AnotherSub()", "").
 						BuildClass("TestClass")
 
 			VerifyBasicDiagnostic(testClass)
@@ -52,8 +52,8 @@ Public Class MethodCallMustHaveBracesAnalyzerTests
 		<Test>
 		Public Sub Throws_Error_If_Method_Call_Has_No_Braces()
 			Dim testClass = _testClassBuilder.
-							WithSub("TestSub", "AnotherSub").
-							WithSub("AnotherSub", "").
+							WithSub("TestSub()", "AnotherSub").
+							WithSub("AnotherSub()", "").
 							BuildClass("TestClass")
 
 			Dim errorMessage = String.Format(MethodCallMustHaveBracesAnalyzer.MethodCallMessage, "AnotherSub")
@@ -65,7 +65,7 @@ Public Class MethodCallMustHaveBracesAnalyzerTests
 		<Test>
 		Public Sub Throws_Error_If_Object_Creation_Is_Done_Without_Braces()
 			Dim testClass = _testClassBuilder.
-										WithSub("TestSub", "Dim test = New System.Text.StringBuilder").
+										WithSub("TestSub()", "Dim test = New System.Text.StringBuilder").
 										BuildClass("TestClass")
 
 			Dim expected = CreateExpectedDiagnosticResult(4, 14, MethodCallMustHaveBracesAnalyzer.ConstructorCallMessage)
@@ -77,9 +77,11 @@ Public Class MethodCallMustHaveBracesAnalyzerTests
 		Public Sub Throws_Error_If_Method_Declaration_Has_No_Braces()
 			Dim testClass = _testClassBuilder.
 										WithSub("TestSub", "").
+										WithFunction("TestFunction", "String", "").
 										BuildClass("TestClass")
 
-			Dim expected = CreateExpectedDiagnosticResult(4, 14, MethodCallMustHaveBracesAnalyzer.ConstructorCallMessage)
+			Dim expected = {CreateExpectedDiagnosticResult(3, 2, MethodCallMustHaveBracesAnalyzer.MethodDeclarationMessage),
+							CreateExpectedDiagnosticResult(6, 2, MethodCallMustHaveBracesAnalyzer.MethodDeclarationMessage)}
 
 			VerifyBasicDiagnostic(testClass, expected)
 		End Sub

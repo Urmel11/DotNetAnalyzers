@@ -40,6 +40,16 @@ Public Class MethodCallMustHaveBracesAnalyzerTests
 		End Sub
 
 		<Test>
+		Public Sub Does_Not_Analyze_InitializeComponent_Method()
+			Dim testClass = _testClassBuilder.
+						WithSub("InitializeComponent()", "AnotherSub").
+						WithSub("AnotherSub", "").
+						BuildClass("TestClass")
+
+			VerifyBasicDiagnostic(testClass)
+		End Sub
+
+		<Test>
 		Public Sub Throws_Error_If_Method_Call_Has_No_Braces()
 			Dim testClass = _testClassBuilder.
 							WithSub("TestSub", "AnotherSub").
@@ -53,7 +63,7 @@ Public Class MethodCallMustHaveBracesAnalyzerTests
 		End Sub
 
 		<Test>
-		Public Sub Thorws_Error_If_Object_Creation_Is_Done_Without_Braces()
+		Public Sub Throws_Error_If_Object_Creation_Is_Done_Without_Braces()
 			Dim testClass = _testClassBuilder.
 										WithSub("TestSub", "Dim test = New System.Text.StringBuilder").
 										BuildClass("TestClass")
@@ -63,6 +73,19 @@ Public Class MethodCallMustHaveBracesAnalyzerTests
 			VerifyBasicDiagnostic(testClass, expected)
 		End Sub
 
+		<Test>
+		Public Sub Throws_Error_If_Method_Declaration_Has_No_Braces()
+			Dim testClass = _testClassBuilder.
+										WithSub("TestSub", "").
+										BuildClass("TestClass")
+
+			Dim expected = CreateExpectedDiagnosticResult(4, 14, MethodCallMustHaveBracesAnalyzer.ConstructorCallMessage)
+
+			VerifyBasicDiagnostic(testClass, expected)
+		End Sub
+
+
+
 		Private Function CreateExpectedDiagnosticResult(line As Integer, column As Integer, message As String) As DiagnosticResult
 			Return New DiagnosticResult With {
 												.Id = MethodCallMustHaveBracesAnalyzer.DiagnosticId,
@@ -70,6 +93,8 @@ Public Class MethodCallMustHaveBracesAnalyzerTests
 												.Severity = DiagnosticSeverity.Warning,
 												.Locations = New DiagnosticResultLocation() {New DiagnosticResultLocation("Test0.vb", line, column)}
 											}
+		
+
 		End Function
 
 	End Class

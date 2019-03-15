@@ -29,10 +29,11 @@ Public Class MethodCallMustHaveBracesAnalyzer
 
 	Public Overrides Sub Initialize(context As AnalysisContext)
 		context.RegisterSyntaxNodeAction(AddressOf ObjectCreationAnalyzer, SyntaxKind.ObjectCreationExpression)
-		context.RegisterSyntaxNodeAction(AddressOf MethodBraceAnalyzer, SyntaxKind.InvocationExpression)
+		context.RegisterSyntaxNodeAction(AddressOf MethodCallBraceAnalyzer, SyntaxKind.InvocationExpression)
+
 	End Sub
 
-	Private Sub MethodBraceAnalyzer(context As SyntaxNodeAnalysisContext)
+	Private Sub MethodCallBraceAnalyzer(context As SyntaxNodeAnalysisContext)
 		Dim methodCall = TryCast(context.Node, InvocationExpressionSyntax)
 
 		If (methodCall Is Nothing) Then Return
@@ -45,6 +46,10 @@ Public Class MethodCallMustHaveBracesAnalyzer
 		If (methodSymbol Is Nothing) Then Return
 
 		If (methodCall.ArgumentList IsNot Nothing) Then Return
+
+		Dim methodName = GetMethodName(methodCall, context.SemanticModel)
+		If (methodName?.Equals("InitializeComponent", StringComparison.OrdinalIgnoreCase)) Then Return
+
 
 		Dim result = Diagnostic.Create(MethodCallRule, methodCall.GetLocation(), methodSymbol.Name)
 		context.ReportDiagnostic(result)
@@ -60,4 +65,17 @@ Public Class MethodCallMustHaveBracesAnalyzer
 			context.ReportDiagnostic(result)
 		End If
 	End Sub
+
+	Private Function GetMethodName(expression As SyntaxNode, model As SemanticModel) As String
+		If (expression Is Nothing) Then Return Nothing
+
+		Dim methodExpression = TryCast(expression, MethodBlockSyntax)
+
+		If (methodExpression Is Nothing) Then
+			Return GetMethodName(expression.Parent, model)
+		End If
+
+		Return methodExpression.SubOrFunctionStatement.Identifier.ValueText
+	End Function
+
 End Class
